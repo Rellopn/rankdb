@@ -2,6 +2,7 @@ package rankdb
 
 import (
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"math/rand"
 	"strings"
 	"sync"
@@ -188,7 +189,7 @@ func (s *SkipList) Print() {
 		var eachEleKv []string
 		nextEle := s.Nodes[i].RootEle.NextEle
 		for nextEle.RootEl != true {
-			eachEleKv = append(eachEleKv, nextEle.Value.(string))
+			eachEleKv = append(eachEleKv, spew.Sdump(nextEle.Value))
 			nextEle = nextEle.NextEle
 		}
 		fmt.Println("第 ", s.Nodes[i].Level, " 层,共有元素 ", s.Nodes[i].EleNum, " 个")
