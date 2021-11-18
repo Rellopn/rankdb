@@ -56,8 +56,8 @@ type RaceRankResult struct {
 }
 
 func TestSortSet_Add(t *testing.T) {
-	sortSet := NewSortSet("test1")
-	sortSet.Add("test1", &RaceRankCompareAble{
+	sortSet := NewSortSet()
+	sortSet.Add(&RaceRankCompareAble{
 		FinishPass: 1,
 		Speed:      1515.12357,
 		Distance:   556879,

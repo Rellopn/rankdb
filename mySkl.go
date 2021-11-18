@@ -16,11 +16,10 @@ const (
 
 type (
 	SkipList struct {
-		SkpListName string
-		writeLock   sync.Mutex // 写锁
-		readLock    sync.Mutex // 读锁
-		Nodes       []*Node
-		rand        *rand.Rand
+		writeLock sync.Mutex // 写锁
+		readLock  sync.Mutex // 读锁
+		Nodes     []*Node
+		rand      *rand.Rand
 	}
 
 	Node struct {
@@ -100,10 +99,9 @@ func (s *SkipList) randomLevel() int {
 }
 
 // NewSkl 新建skl
-func NewSkl(keyName string) *SkipList {
+func NewSkl() *SkipList {
 	skl := &SkipList{
-		SkpListName: keyName,
-		rand:        rand.New(rand.NewSource(time.Now().Unix())),
+		rand: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 	skl.Nodes = make([]*Node, MaxLevel)
 	for i := 0; i < MaxLevel; i++ {
@@ -112,9 +110,9 @@ func NewSkl(keyName string) *SkipList {
 	return skl
 }
 
-func (s *SkipList) Insert(keyName string, score CompareAble, value interface{}) {
+func (s *SkipList) Insert(score CompareAble, value interface{}) {
 	if len(s.Nodes) == 0 {
-		s = NewSkl(keyName)
+		s = NewSkl()
 	}
 	insertLevel := s.randomLevel()
 

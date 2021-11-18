@@ -9,12 +9,11 @@ import (
 )
 
 func TestNewSkl(t *testing.T) {
-	var sklName = "test1"
-	skl := NewSkl(sklName)
+	skl := NewSkl()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 100; i++ {
 		n := r.Intn(100)
-		skl.Insert(sklName, NewF64CompareAble(float64(n)), "number "+strconv.Itoa(n))
+		skl.Insert(NewF64CompareAble(float64(n)), "number "+strconv.Itoa(n))
 	}
 	skl.Print()
 	fmt.Println("-------------------")

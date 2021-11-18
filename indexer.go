@@ -1,5 +1,18 @@
 package rankdb
 
+const (
+	IndexTypeHash = iota
+	IndexTypeRedBlackTree
+)
+
+type IndexerHash struct {
+	IdxHash map[string]*OneIndexer
+}
+
+func NewIndexerHash() *IndexerHash {
+	return &IndexerHash{IdxHash: make(map[string]*OneIndexer)}
+}
+
 // Indexer 实现了从sort set value中提取字段作为索引
 type Indexer struct {
 	// 字段的名称
@@ -10,6 +23,5 @@ type Indexer struct {
 
 // OneIndexer 一条索引的全部记录
 type OneIndexer struct {
-	IndexName   string
 	FullIndexer []*Indexer
 }
