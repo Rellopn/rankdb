@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -14,11 +15,11 @@ type RaceRankCompareAble struct {
 	totalTime  float64 // 4
 }
 
-func (r RaceRankCompareAble) Compare(a CompareAble) (int, error) {
-	ad, ok := a.(RaceRankCompareAble)
+func (r RaceRankCompareAble) CompareTo(a CompareAble) (int, error) {
+	ad, ok := a.(*RaceRankCompareAble)
 	if !ok {
-		aRealKind := reflect.TypeOf(a).Name()
-		return 0, errors.New(fmt.Sprintf("Not except type, except type RaceRank, but got [%s]", aRealKind))
+		aRealKind := reflect.TypeOf(a).Elem().Name()
+		return 0, errors.New(fmt.Sprintf("Not except type, except type *RaceRankCompareAble, but got [%s]", aRealKind))
 	}
 	if r.FinishPass > ad.FinishPass {
 		return 1, nil
@@ -67,6 +68,52 @@ func TestSortSet_Add(t *testing.T) {
 		Age:       23,
 		ShoeBrand: "Nk",
 		Speed:     1515.12357,
-	}, map[string]string{"name": "mark"})
-	sortSet.SkipList.Print()
+	}, []*AddIndex{
+		{"name", "mark"},
+	})
+}
+
+func TestZCard(t *testing.T) {
+	sortSet := NewSortSet()
+	for i := 0; i < 10000; i++ {
+		sortSet.Add(&RaceRankCompareAble{
+			FinishPass: 1,
+			Speed:      1515.12357,
+			Distance:   556879,
+			totalTime:  367.54692,
+		}, &RaceRankResult{
+			Name:      "mark",
+			Age:       23,
+			ShoeBrand: "Nk",
+			Speed:     1515.12357,
+		}, []*AddIndex{
+			{"name", "mark"},
+		})
+	}
+}
+func BenchmarkZCard(b *testing.B) {
+	sortSet := NewSortSet()
+	var wg sync.WaitGroup
+	for i := 0; i < 10000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sortSet.Add(&RaceRankCompareAble{
+				FinishPass: 1,
+				Speed:      1515.12357,
+				Distance:   556879,
+				totalTime:  367.54692,
+			}, &RaceRankResult{
+				Name:      "mark",
+				Age:       23,
+				ShoeBrand: "Nk",
+				Speed:     1515.12357,
+			}, []*AddIndex{
+				{"name", "mark"},
+			})
+		}()
+	}
+	wg.Wait()
+	//keyNum := ZCard("t1")
+	//fmt.Println("except 101, got ", keyNum)
 }

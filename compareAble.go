@@ -7,7 +7,7 @@ import (
 )
 
 type CompareAble interface {
-	Compare(CompareAble) (int, error)
+	CompareTo(CompareAble) (int, error)
 }
 
 type F64CompareAble struct {
@@ -18,7 +18,7 @@ func NewF64CompareAble(f64 float64) F64CompareAble {
 	return F64CompareAble{f64}
 }
 
-func (f F64CompareAble) Compare(f64 CompareAble) (int, error) {
+func (f F64CompareAble) CompareTo(f64 CompareAble) (int, error) {
 	f64origin, ok := f64.(F64CompareAble)
 	if !ok {
 		f64RealKind := reflect.TypeOf(f64).Name()
@@ -41,7 +41,7 @@ func NewStrCompareAble(str string) StrCompareAble {
 	return StrCompareAble{str}
 }
 
-func (s StrCompareAble) Compare(str CompareAble) (int, error) {
+func (s StrCompareAble) CompareTo(str CompareAble) (int, error) {
 	strOrigin, ok := str.(StrCompareAble)
 	if !ok {
 		strOriginKind := reflect.TypeOf(str).Name()

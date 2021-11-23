@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	P        = 0.75
-	MaxLevel = 8
+	P        = 0.25
+	MaxLevel = 32
 )
 
 type (
@@ -36,6 +36,8 @@ type (
 		Value interface{}
 		// 根？
 		RootEl bool
+		// 到下一个的节点数量
+		Span int
 		// 记录属于哪一个节点的
 		Node    *Node
 		NextEle *Ele
@@ -55,7 +57,7 @@ func NewRootEle(node *Node) *Ele {
 }
 
 // NewEle 创建一个新的Ele
-func NewEle(score CompareAble, val interface{}, node *Node) *Ele {
+func NewEle(score CompareAble, val interface{}, node *Node, span int) *Ele {
 	rootEle := &Ele{
 		Score:  score,
 		Value:  val,
@@ -110,22 +112,27 @@ func NewSkl() *SkipList {
 	return skl
 }
 
-func (s *SkipList) Insert(score CompareAble, value interface{}) {
+func (s *SkipList) Insert(score CompareAble, value interface{}) *Ele {
 	if len(s.Nodes) == 0 {
 		s = NewSkl()
 	}
 	insertLevel := s.randomLevel()
-
+	rank := make([]uint64, maxLevel)
 	// 暂存走过的元素,记录到的是插入key比较大小的前一个值
 	prevs := make([]*Ele, MaxLevel)
 	for i := MaxLevel - 1; i >= 0; i-- {
+		if i == MaxLevel-1 {
+			rank[i] = 0
+		} else {
+			rank[i] = rank[i+1]
+		}
 		if s.Nodes[i].HasEle() {
 			// 如果此层的node有元素的话,遍历此node下的元素，并且判断当前节点是否大于插入值
 			for nextEle := s.Nodes[i].RootEle.NextEle; nextEle.RootEl != true; nextEle = nextEle.NextEle {
 				// 判断当前节点是否大于插入值
-				if c, err := nextEle.Score.Compare(score); c >= 0 {
+				if c, err := nextEle.Score.CompareTo(score); c >= 0 {
 					if err != nil {
-						return
+						return nil
 					}
 					// 判断当前层数是否小于等于随机的层数
 					if i <= insertLevel-1 {
@@ -151,9 +158,10 @@ func (s *SkipList) Insert(score CompareAble, value interface{}) {
 		}
 	}
 
+	var returnEle *Ele
 	// 遍历并替换值
 	for i := 0; i < len(prevs) && prevs[i] != nil; i++ {
-		newEle := NewEle(score, value, prevs[i].Node)
+		newEle := NewEle(score, value, prevs[i].Node, 1)
 		tempNextEle := prevs[i].NextEle
 		prevs[i].NextEle.PreEle = newEle // 设置旧的下一个元素
 		prevs[i].NextEle = newEle
@@ -162,7 +170,11 @@ func (s *SkipList) Insert(score CompareAble, value interface{}) {
 		newEle.PreEle = prevs[i]
 
 		prevs[i].Node.EleNum++
+		if i == 0 {
+			returnEle = newEle
+		}
 	}
+	return returnEle
 }
 func (s SkipList) Get(score CompareAble) interface{} {
 	if len(s.Nodes) == 0 {
@@ -171,7 +183,7 @@ func (s SkipList) Get(score CompareAble) interface{} {
 	for i := MaxLevel - 1; i >= 0; i-- {
 		// 如果此层的node有元素的话,遍历此node下的元素，并且判断当前节点是否大于插入值
 		for nextEle := s.Nodes[i].RootEle.NextEle; nextEle.RootEl != true; nextEle = nextEle.NextEle {
-			if c, err := nextEle.Score.Compare(score); c == 0 {
+			if c, err := nextEle.Score.CompareTo(score); c == 0 {
 				if err != nil {
 					return nil
 				}

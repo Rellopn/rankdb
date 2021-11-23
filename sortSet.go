@@ -4,48 +4,45 @@ import (
 	"sync"
 )
 
-type SortSetRecord map[string]*SortSet
-
-var SortSetRecords = make(map[string]*SortSet)
-
-type SortSet struct {
+// SortedSetNode node of sorted set
+type SortedSetNode struct {
+	dict     map[interface{}]*sklNode
+	skl      *skipList
 	Lock     sync.Mutex
 	Indexers *IndexerHash
-	SkipList *SkipList
 }
 
-func NewSortSet() *SortSet {
-	return &SortSet{
+func NewSortSet() *SortedSetNode {
+	return &SortedSetNode{
 		Indexers: NewIndexerHash(),
-		SkipList: NewSkl(),
+		//skl: NewSkl(),
 	}
 }
 
-func (s *SortSet) Add(score CompareAble, value interface{}, indexers map[string]string) {
+// Add score 分值，value 保存的对象, indexers map 的key 保存的列名称,也就是value对象里面的某个字段的名称
+// map 的 value 保存的value对象里面 key 对应的值。
+// 这里让用户手动添加indexers 而不是利用反射是为了提高性能。减少反射所耗费的性能。
+// TODO: 提供一个自动检查的方法。利用Tag标记。
+func (s *SortedSetNode) Add(score CompareAble, value interface{}, indexers []*AddIndex) {
 	s.Lock.Lock()
-	s.SkipList.Insert(score, value)
+	insertEle := s.skl.sklInsert(score, value)
+	s.dict[value] = insertEle
 	s.addIndexers(value, indexers)
 	s.Lock.Unlock()
 }
 
-func (s *SortSet) addIndexers(value interface{}, indexers map[string]string) {
-	for indexersKey, IndexerVal := range indexers {
-		if s.Indexers.IdxHash[indexersKey] != nil {
-			oneIndexerFullIndexer := s.Indexers.IdxHash[indexersKey].FullIndexer
-			oneIndexerFullIndexer = append(oneIndexerFullIndexer, &Indexer{ColumnName: IndexerVal, Pointer: value})
+func (s *SortedSetNode) addIndexers(value interface{}, indexers []*AddIndex) {
+	for i := 0; i < len(indexers); i++ {
+		indexersKey, indexerVal := indexers[i].ColumnName, indexers[i].ColumnValue
+		// 检查是否已经存在此字段的索引
+		if oneIndexer := s.Indexers.IdxHash[indexersKey]; oneIndexer != nil {
+			// 拉链法添加
+			oneIndexer.ZipperAdd(indexerVal, value)
 		} else {
-			s.Indexers.IdxHash[indexersKey] = &OneIndexer{FullIndexer: []*Indexer{
-				{ColumnName: IndexerVal, Pointer: value},
-			}}
+			// 新建对象添加
+			newOneIndexer := NewOneIndexer()
+			newOneIndexer.ZipperAdd(indexerVal, value)
+			s.Indexers.IdxHash[indexersKey] = newOneIndexer
 		}
 	}
-}
-
-// ZCard 获取有序集合的成员数
-func ZCard(key string) int {
-	record := SortSetRecords[key]
-	if record == nil {
-		return 0
-	}
-	return record.SkipList.Nodes[0].EleNum
 }
