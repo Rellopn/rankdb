@@ -601,7 +601,7 @@ func (skl *skipList) sklDelete(score CompareAble, member string) {
 	}
 }
 
-func (skl *skipList) sklGetRank(score CompareAble, member string) int64 {
+func (skl *skipList) sklGetRank(score CompareAble, member interface{}) int64 {
 	var rank uint64 = 0
 	p := skl.head
 
