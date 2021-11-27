@@ -1,2 +1,2 @@
 # rankdb
-fast rank k-v db like redis sortSet but more professional
+fast rank k-v db like redis sortSet embedded in go.
