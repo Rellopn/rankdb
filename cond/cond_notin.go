@@ -183,17 +183,6 @@ func (condNotIn condNotIn) WriteTo(w Writer) error {
 		if _, err := fmt.Fprintf(w, ")"); err != nil {
 			return err
 		}
-	case *Builder:
-		val := condNotIn.vals[0].(*Builder)
-		if _, err := fmt.Fprintf(w, "%s NOT IN (", condNotIn.col); err != nil {
-			return err
-		}
-		if err := val.WriteTo(w); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintf(w, ")"); err != nil {
-			return err
-		}
 	default:
 		v := reflect.ValueOf(condNotIn.vals[0])
 		if v.Kind() == reflect.Slice {
