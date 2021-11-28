@@ -3,6 +3,7 @@ package rankdb
 import (
 	"errors"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"reflect"
 	"sync"
 	"testing"
@@ -114,6 +115,28 @@ func BenchmarkZCard(b *testing.B) {
 		}()
 	}
 	wg.Wait()
-	//keyNum := ZCard("t1")
-	//fmt.Println("except 101, got ", keyNum)
+}
+
+func TestSortedSetNode_GetByIndex(t *testing.T) {
+	sortSet := NewSortSet()
+	sortSet.Add(&RaceRankCompareAble{
+		FinishPass: 1,
+		Speed:      1515.12357,
+		Distance:   556879,
+		totalTime:  367.54692,
+	}, &RaceRankResult{
+		Rank:      1,
+		Name:      "mark",
+		Age:       23,
+		ShoeBrand: "Nk",
+		Speed:     1515.12357,
+	}, []*AddIndex{
+		{"name", "mark"},
+	})
+	getByIndex := sortSet.GetByIndex([]*SelectIndex{
+		{ColumnName: "name", Operation: LIKE, SearchVal: "m", ColumnType: STRING},
+	}, 0, -1)
+	for _, re := range getByIndex {
+		spew.Dump(re)
+	}
 }

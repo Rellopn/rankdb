@@ -1,6 +1,8 @@
 package rankdb
 
-import "sync"
+import (
+	"sync"
+)
 
 // SortedSetNode node of sorted set
 type SortedSetNode struct {
@@ -14,6 +16,8 @@ type SortedSetNode struct {
 func NewSortSet() *SortedSetNode {
 	return &SortedSetNode{
 		Indexers: NewIndexerHash(),
+		skl:      newSkipList(),
+		dict:     make(map[interface{}]*sklNode),
 	}
 }
 
@@ -66,7 +70,8 @@ func (s *SortedSetNode) GetByIndex(selectIndexers []*SelectIndex, start, stop in
 				}
 			}
 			// 等于操作,集合求交集
-			if selectIndexer.Operation == EQ {
+			// TODO:连接符为and时
+			if selectIndexer.Operation == EQ || selectIndexer.Operation == LIKE {
 				if tempRes == nil {
 					tempRes = innerTempRes
 				} else {
