@@ -1,6 +1,8 @@
 package rankdb
 
-import "github.com/rellopn/rankdb/filter"
+import (
+	"github.com/rellopn/rankdb/filter"
+)
 
 const (
 	OperationAnd = iota
@@ -28,22 +30,11 @@ func (q *QueryBuilders) LevelBfs() [][]*QueryBuilder {
 	res := make([][]*QueryBuilder, q.MaxLevel)
 	queues := make([]*Queue, q.MaxLevel)
 	q.levelBfs(q.QueryBuilders, &queues)
-	// 控制层数
-	//for ; len(traverse.InnerBuilders) != 0; traverse = traverse.InnerBuilders[0] {
-	//
-	//	for i := 0; i < len(traverse.InnerBuilders); i++ {
-	//		if queues[traverse.InnerBuilders[i].Level] == nil {
-	//			queues[traverse.InnerBuilders[i].Level] = NewQueue()
-	//		}
-	//		queues[traverse.InnerBuilders[i].Level].Add(traverse.InnerBuilders[i])
-	//	}
-	//
-	//}
 	for i := 0; i < len(queues); i++ {
 		l := queues[i].Length()
 		res[i] = make([]*QueryBuilder, l)
 		for j := 0; j < l; j++ {
-			res[i][j] = queues[i].Peek()
+			res[i][j] = queues[i].Remove()
 		}
 	}
 	return res

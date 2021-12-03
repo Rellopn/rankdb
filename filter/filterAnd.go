@@ -1,5 +1,7 @@
 package filter
 
+import "fmt"
+
 type filterAnd []Filter
 
 var _ Filter = filterAnd{}
@@ -28,7 +30,29 @@ func (and filterAnd) Or(filters ...Filter) Filter {
 	return Or(and, Or(filters...))
 }
 
-func (and filterAnd) WriteTo(Writer) error {
+func (and filterAnd) WriteTo(w Writer) error {
+	for i, cond := range and {
+		_, isOr := cond.(filterOr)
+		_, isExpr := cond.(expr)
+		wrap := isOr || isExpr
+		if wrap {
+			fmt.Fprint(w, "(")
+		}
+
+		err := cond.WriteTo(w)
+		if err != nil {
+			return err
+		}
+
+		if wrap {
+			fmt.Fprint(w, ")")
+		}
+
+		if i != len(and)-1 {
+			fmt.Fprint(w, " AND ")
+		}
+	}
+
 	return nil
 }
 
